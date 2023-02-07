@@ -1,0 +1,220 @@
+2023-02-05 15:36:43,363 - mmcls - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: win32
+Python: 3.9.16 (main, Jan 11 2023, 16:16:36) [MSC v.1916 64 bit (AMD64)]
+CUDA available: True
+GPU 0: NVIDIA GeForce RTX 3080 Ti
+CUDA_HOME: C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.4
+NVCC: Cuda compilation tools, release 11.4, V11.4.48
+MSVC:      x64    Microsoft (R) C/C++  Ż        19.29.30143   
+GCC: n/a
+PyTorch: 1.12.1
+PyTorch compiling details: PyTorch built with:
+  - C++ Version: 199711
+  - MSVC 192829337
+  - Intel(R) Math Kernel Library Version 2020.0.2 Product Build 20200624 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v2.6.0 (Git Hash 52b5f107dd9cf10910aaa19cb47f3abf9b349815)
+  - OpenMP 2019
+  - LAPACK is enabled (usually provided by MKL)
+  - CPU capability usage: AVX2
+  - CUDA Runtime 11.3
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 8.3.2  (built against CUDA 11.5)
+  - Magma 2.5.4
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.3, CUDNN_VERSION=8.3.2, CXX_COMPILER=C:/cb/pytorch_1000000000000/work/tmp_bin/sccache-cl.exe, CXX_FLAGS=/DWIN32 /D_WINDOWS /GR /EHsc /w /bigobj -DUSE_PTHREADPOOL -openmp:experimental -IC:/cb/pytorch_1000000000000/work/mkl/include -DNDEBUG -DUSE_KINETO -DLIBKINETO_NOCUPTI -DUSE_FBGEMM -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -DEDGE_PROFILER_USE_KINETO, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.12.1, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=OFF, USE_MPI=OFF, USE_NCCL=OFF, USE_NNPACK=OFF, USE_OPENMP=ON, USE_ROCM=OFF, 
+
+TorchVision: 0.13.1
+OpenCV: 4.7.0
+MMCV: 1.7.1
+MMCV Compiler: MSVC 192829924
+MMCV CUDA Compiler: 11.3
+MMClassification: 0.25.0+
+------------------------------------------------------------
+
+2023-02-05 15:36:43,364 - mmcls - INFO - Distributed training: False
+2023-02-05 15:36:43,478 - mmcls - INFO - Config:
+model = dict(
+    type='ImageClassifier',
+    backbone=dict(
+        type='ResNet',
+        depth=18,
+        num_stages=4,
+        out_indices=(3, ),
+        style='pytorch'),
+    neck=dict(type='GlobalAveragePooling'),
+    head=dict(
+        type='LinearClsHead',
+        num_classes=5,
+        in_channels=512,
+        loss=dict(type='CrossEntropyLoss', loss_weight=1.0),
+        topk=(1, )))
+dataset_type = 'ImageNet'
+img_norm_cfg = dict(
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='RandomResizedCrop', size=224),
+    dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='ToTensor', keys=['gt_label']),
+    dict(type='Collect', keys=['img', 'gt_label'])
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='Resize', size=(256, -1)),
+    dict(type='CenterCrop', crop_size=224),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='Collect', keys=['img'])
+]
+data = dict(
+    samples_per_gpu=32,
+    workers_per_gpu=2,
+    train=dict(
+        type='CustomDataset',
+        data_prefix='../datasets/flower_dataset_split/train',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='RandomResizedCrop', size=224),
+            dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='ToTensor', keys=['gt_label']),
+            dict(type='Collect', keys=['img', 'gt_label'])
+        ]),
+    val=dict(
+        type='CustomDataset',
+        data_prefix='../datasets/flower_dataset_split/val',
+        ann_file='../datasets/flower_dataset_split/val.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='Resize', size=(256, -1)),
+            dict(type='CenterCrop', crop_size=224),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ]),
+    test=dict(
+        type='CustomDataset',
+        data_prefix='../datasets/flower_dataset_split/val',
+        ann_file='../datasets/flower_dataset_split/val.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='Resize', size=(256, -1)),
+            dict(type='CenterCrop', crop_size=224),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ]))
+evaluation = dict(interval=1, metric='accuracy')
+optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0001)
+optimizer_config = dict(grad_clip=None)
+lr_config = dict(policy='step', step=[30, 60, 90])
+runner = dict(type='EpochBasedRunner', max_epochs=5)
+checkpoint_config = dict(interval=5)
+log_config = dict(interval=20, hooks=[dict(type='TextLoggerHook')])
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = 'resnet18_8xb32_in1k_20210831-fbbb1da6.pth'
+resume_from = None
+workflow = [('train', 1)]
+work_dir = './work_dirs\resnet18_8xb32_in1k_yyh'
+gpu_ids = [0]
+
+2023-02-05 15:36:43,481 - mmcls - INFO - Set random seed to 1537306172, deterministic: False
+2023-02-05 15:36:43,908 - mmcls - INFO - load checkpoint from local path: resnet18_8xb32_in1k_20210831-fbbb1da6.pth
+2023-02-05 15:36:43,935 - mmcls - WARNING - The model and loaded state dict do not match exactly
+
+size mismatch for head.fc.weight: copying a param with shape torch.Size([1000, 512]) from checkpoint, the shape in current model is torch.Size([5, 512]).
+size mismatch for head.fc.bias: copying a param with shape torch.Size([1000]) from checkpoint, the shape in current model is torch.Size([5]).
+2023-02-05 15:36:43,937 - mmcls - INFO - Start running, host: Administrator@XZ-SIH5GTH2EQBQ, work_dir: D:\project_python\openmmlab\mmclassification-0.25.0\work_dirs\resnet18_8xb32_in1k_yyh
+2023-02-05 15:36:43,938 - mmcls - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) OptimizerHook                      
+(NORMAL      ) CheckpointHook                     
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_epoch:
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+2023-02-05 15:36:43,939 - mmcls - INFO - workflow: [('train', 1)], max: 5 epochs
+2023-02-05 15:36:43,939 - mmcls - INFO - Checkpoints will be saved to D:\project_python\openmmlab\mmclassification-0.25.0\work_dirs\resnet18_8xb32_in1k_yyh by HardDiskBackend.
+2023-02-05 15:36:54,265 - mmcls - INFO - Epoch [1][20/72]	lr: 5.000e-03, eta: 0:02:55, time: 0.516, data_time: 0.331, memory: 836, loss: 1.0337
+2023-02-05 15:36:55,793 - mmcls - INFO - Epoch [1][40/72]	lr: 5.000e-03, eta: 0:01:34, time: 0.076, data_time: 0.051, memory: 836, loss: 0.4088
+2023-02-05 15:36:57,383 - mmcls - INFO - Epoch [1][60/72]	lr: 5.000e-03, eta: 0:01:07, time: 0.079, data_time: 0.058, memory: 836, loss: 0.4354
+2023-02-05 15:37:03,527 - mmcls - INFO - Epoch(val) [1][18]	accuracy_top-1: 87.7622, accuracy_top-5: 100.0000
+2023-02-05 15:37:06,500 - mmcls - INFO - Epoch [2][20/72]	lr: 5.000e-03, eta: 0:00:47, time: 0.148, data_time: 0.107, memory: 836, loss: 0.3726
+2023-02-05 15:37:07,249 - mmcls - INFO - Epoch [2][40/72]	lr: 5.000e-03, eta: 0:00:37, time: 0.037, data_time: 0.012, memory: 836, loss: 0.3418
+2023-02-05 15:37:07,976 - mmcls - INFO - Epoch [2][60/72]	lr: 5.000e-03, eta: 0:00:30, time: 0.036, data_time: 0.011, memory: 836, loss: 0.3525
+2023-02-05 15:37:09,063 - mmcls - INFO - Epoch(val) [2][18]	accuracy_top-1: 91.7832, accuracy_top-5: 100.0000
+2023-02-05 15:37:11,938 - mmcls - INFO - Epoch [3][20/72]	lr: 5.000e-03, eta: 0:00:24, time: 0.143, data_time: 0.107, memory: 836, loss: 0.2291
+2023-02-05 15:37:12,652 - mmcls - INFO - Epoch [3][40/72]	lr: 5.000e-03, eta: 0:00:20, time: 0.036, data_time: 0.014, memory: 836, loss: 0.2644
+2023-02-05 15:37:13,373 - mmcls - INFO - Epoch [3][60/72]	lr: 5.000e-03, eta: 0:00:16, time: 0.036, data_time: 0.011, memory: 836, loss: 0.2378
+2023-02-05 15:37:14,480 - mmcls - INFO - Epoch(val) [3][18]	accuracy_top-1: 94.7552, accuracy_top-5: 100.0000
+2023-02-05 15:37:17,358 - mmcls - INFO - Epoch [4][20/72]	lr: 5.000e-03, eta: 0:00:13, time: 0.143, data_time: 0.107, memory: 836, loss: 0.2783
+2023-02-05 15:37:18,116 - mmcls - INFO - Epoch [4][40/72]	lr: 5.000e-03, eta: 0:00:10, time: 0.038, data_time: 0.014, memory: 836, loss: 0.2539
+2023-02-05 15:37:18,853 - mmcls - INFO - Epoch [4][60/72]	lr: 5.000e-03, eta: 0:00:08, time: 0.037, data_time: 0.011, memory: 836, loss: 0.2124
+2023-02-05 15:37:19,967 - mmcls - INFO - Epoch(val) [4][18]	accuracy_top-1: 92.6573, accuracy_top-5: 100.0000
+2023-02-05 15:37:22,810 - mmcls - INFO - Epoch [5][20/72]	lr: 5.000e-03, eta: 0:00:04, time: 0.141, data_time: 0.107, memory: 836, loss: 0.2752
+2023-02-05 15:37:23,554 - mmcls - INFO - Epoch [5][40/72]	lr: 5.000e-03, eta: 0:00:02, time: 0.037, data_time: 0.015, memory: 836, loss: 0.2157
+2023-02-05 15:37:24,290 - mmcls - INFO - Epoch [5][60/72]	lr: 5.000e-03, eta: 0:00:01, time: 0.037, data_time: 0.013, memory: 836, loss: 0.2767
+2023-02-05 15:37:24,703 - mmcls - INFO - Saving checkpoint at 5 epochs
+2023-02-05 15:37:25,774 - mmcls - INFO - Epoch(val) [5][18]	accuracy_top-1: 93.8811, accuracy_top-5: 100.0000
